@@ -1,19 +1,113 @@
 <?php
-/** @noinspection ALL */
 
 declare(strict_types=1);
+
+namespace Test;
 
 use App\Rota;
 use App\Shift;
 use App\SingleManningCalculator;
+use App\SingleManningList;
+use DateTime;
+use InvalidArgumentException;
 
-class SingleManningCalculatorTest extends \PHPUnit\Framework\TestCase
+class SingleManningCalculatorTest extends TestCase
 {
-    public function test_one()
+    public function test_scenario_one()
     {
-        $today = new DateTime('today');
-        $tomorrow = new DateTime('tomorrow');
+        $startTime = new DateTime('2021-07-05 08:00:00.0');
+        $endTime = new DateTime('2021-07-05 17:00:00.0');
 
+        $rota = new Rota(
+            new DateTime('2021-07-01'),
+            [
+                new Shift($startTime, $endTime, 'Black Widow')
+            ]
+        );
+
+        $expected = new SingleManningList(
+            [
+                '05-07-2021' => 540
+            ]
+        );
+
+        $singleManning = SingleManningCalculator::calculateSingleManning($rota);
+
+        $this->assertEquals($expected, $singleManning);
+    }
+
+    public function test_should_throw_invalid_argument_exception_if_start_time_greater_than_end_time()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('End time must be greater than start time.');
+
+        $startTime = new DateTime('2021-07-05 17:00:00.0');
+        $endTime = new DateTime('2021-07-05 08:00:00.0');
+
+        new Rota(
+            new DateTime('2021-07-01'),
+            [
+                new Shift($startTime, $endTime, 'Black Widow')
+            ]
+        );
+    }
+
+    public function test_scenario_two()
+    {
+        $blackWidowStartTime = new DateTime('2021-07-06 08:00:00.0');
+        $blackWidowEndTime = new DateTime('2021-07-06 12:00:00.0');
+
+        $thorStartTime = new DateTime('2021-07-06 12:00:00.0');
+        $thorEndTime = new DateTime('2021-07-06 17:00:00.0');
+
+        $rota = new Rota(
+            new DateTime('2021-07-01'),
+            [
+                new Shift($blackWidowStartTime, $blackWidowEndTime, 'Black Widow'),
+                new Shift($thorStartTime, $thorEndTime, 'Thor'),
+            ]
+        );
+
+        $expected = new SingleManningList(
+            [
+                '06-07-2021' => 540
+            ]
+        );
+
+        $singleManning = SingleManningCalculator::calculateSingleManning($rota);
+
+        $this->assertEquals($expected, $singleManning);
+    }
+
+    public function test_scenario_three()
+    {
+        $wolverineStartTime = new DateTime('2021-07-07 08:00:00.0');
+        $wolverineEndTime = new DateTime('2021-07-07 14:00:00.0');
+
+        $gamoraStartTime = new DateTime('2021-07-07 09:00:00.0');
+        $gamoraEndTime = new DateTime('2021-07-07 17:00:00.0');
+
+        $rota = new Rota(
+            new DateTime('2021-07-01'),
+            [
+                new Shift($wolverineStartTime, $wolverineEndTime, 'Wolverine'),
+                new Shift($gamoraStartTime, $gamoraEndTime, 'Gamora'),
+            ]
+        );
+
+        $expected = new SingleManningList(
+            [
+                '07-07-2021' => 240
+            ]
+        );
+
+        $singleManning = SingleManningCalculator::calculateSingleManning($rota);
+
+        $this->assertEquals($expected, $singleManning);
+    }
+
+    public function test_multiples_shifts_in_rota_with_today_date_and_tomorrow_date()
+    {
         $rota = new Rota(
             new DateTime('2021-07-01'),
             [
@@ -26,22 +120,15 @@ class SingleManningCalculatorTest extends \PHPUnit\Framework\TestCase
             ]
         );
 
+        $expected = new SingleManningList(
+            [
+                '15-07-2021' => 180,
+                '16-07-2021' => 180,
+            ]
+        );
+
         $singleManning = SingleManningCalculator::calculateSingleManning($rota);
 
-        dd($singleManning);
-
-        $this->assertEquals(300, $singleManning);
-    }
-
-    private function todayAddHours(int $hours): DateTime
-    {
-        return (new DateTime('today'))
-            ->add(new DateInterval('PT' . $hours . 'H'));
-    }
-
-    private function tomorrowAddHours(int $hours): DateTime
-    {
-        return (new DateTime('tomorrow'))
-            ->add(new DateInterval('PT' . $hours . 'H'));
+        $this->assertEquals($expected, $singleManning);
     }
 }

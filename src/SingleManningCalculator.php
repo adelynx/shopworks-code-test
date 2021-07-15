@@ -39,7 +39,7 @@ class SingleManningCalculator
         }
 
         if (count($shifts) === 1) {
-            return self::getTotalMinutes($shifts[0]->endTime - $shifts[0]->startTime);
+            return self::getTotalMinutes($shifts[0]->endTime->diff($shifts[0]->startTime));
         }
 
         $orderedShiftsByStartTime = self::orderShiftsByStartTime($shifts); // Complexity:  O(n log n) (quick sort algorithm)
