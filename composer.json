@@ -2,10 +2,9 @@
     "name": "adelynx/shopworks-code-test",
     "description": "Shopworks Recruitment Coding Test",
     "type": "project",
-    "require": {
-    },
     "require-dev": {
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^9.5",
+        "symfony/var-dumper": "^5.3"
     },
     "license": "MIT",
     "autoload": {

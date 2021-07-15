@@ -13,13 +13,13 @@ class SingleManningCalculator
      *
      * @return SingleManningList
      */
-    public static function calculateSingManning(Rota $rota): SingleManningList
+    public static function calculateSingleManning(Rota $rota): SingleManningList
     {
         $groupShiftsByDay = self::groupShiftsByDay($rota); // Complexity: n
         $singleManningList = [];
 
         foreach ($groupShiftsByDay as $day => $shift) {
-            $singleManning = self::calculateSingleManning($shift); // complexity: n log (n) + n
+            $singleManning = self::calculateSingleManningInShiftsList($shift); // complexity: n log (n) + n
 
             $singleManningList[$day] = $singleManning;
         }
@@ -32,34 +32,35 @@ class SingleManningCalculator
      *
      * @return int
      */
-    public static function calculateSingleManning(array $shifts): int
+    public static function calculateSingleManningInShiftsList(array $shifts): int
     {
         if (count($shifts) === 0) {
             return 0;
         }
 
         if (count($shifts) === 1) {
-            return self::getTotalMinutes($shifts[0]['end_time'] - $shifts[0]['start_time']);
+            return self::getTotalMinutes($shifts[0]->endTime - $shifts[0]->startTime);
         }
 
-        $orderedShiftsByStartTime = self::orderShiftsByStartTime($shifts); // Complexity:  O(n log n)
+        $orderedShiftsByStartTime = self::orderShiftsByStartTime($shifts); // Complexity:  O(n log n) (quick sort algorithm)
         $singleManning = 0;
-        $currentShift = $shifts[0];
 
-        array_shift($shifts); // remove first shift
+        $currentShift = $orderedShiftsByStartTime[0];
+
+        array_shift($orderedShiftsByStartTime); // remove first shift
 
         do {
-            $nextShift = $shifts[0];
+            $nextShift = $orderedShiftsByStartTime[0];
 
-            array_shift($shifts);
+            array_shift($orderedShiftsByStartTime);
 
-            $singleManning += max($nextShift['start_time'] - $currentShift['start_time'], 0);
-            $currentShift['start_time'] = self::minTime($currentShift['end_time'], $nextShift['end_time']);
-            $currentShift['end_time'] = self::maxTime($currentShift['end_time'], $nextShift['end_time']);
+            $singleManning += self::maxInterval($nextShift->startTime, $currentShift->startTime);
+            $currentShift->startTime = self::minTime($currentShift->endTime, $nextShift->endTime);
+            $currentShift->endTime = self::maxTime($currentShift->endTime, $nextShift->endTime);
         } while (count($orderedShiftsByStartTime) > 0); // Complexity: n
 
-        $singleManning = $singleManning + $currentShift['end_time'] - $currentShift['start_time'];
+        $singleManning += self::getTotalMinutes($currentShift->endTime->diff($currentShift->startTime));
 
-        return self::getTotalMinutes($singleManning); // TotalComplexity: n log (n) + n
+        return $singleManning; // TotalComplexity: n log (n) + n
     }
 }

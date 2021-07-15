@@ -16,14 +16,9 @@ trait SingleManningCalculatorTrait
      */
     private static function orderShiftsByStartTime(array $shifts): array
     {
-        $groupedShiftsByStartTime = [];
+        usort($shifts, fn($a, $b) => $a->startTime <=> $b->startTime);
 
-        foreach ($shifts as $shift) {
-            $startTime = $shift['start_time'];
-            $groupedShiftsByStartTime[$startTime][] = $shift;
-        }
-
-        return $groupedShiftsByStartTime;
+        return $shifts;
     }
 
     /**
@@ -38,21 +33,11 @@ trait SingleManningCalculatorTrait
         $groupedShiftsByDay = [];
 
         foreach ($rota->shifts as $shift) {
-            $day = $shift->startTime->format('d/m/Y');
+            $day = $shift->startTime->format('d-m-Y');
             $groupedShiftsByDay[$day][] = $shift;
         }
 
         return $groupedShiftsByDay;
-    }
-
-    /**
-     * @param DateInterval $dateInterval
-     *
-     * @return int
-     */
-    private static function getTotalMinutes(DateInterval $dateInterval): int
-    {
-        return ($dateInterval->d * 24 * 60) + ($dateInterval->h * 60) + $dateInterval->i;
     }
 
     /**
@@ -75,5 +60,28 @@ trait SingleManningCalculatorTrait
     private static function maxTime(DateTime $firstValue, DateTime $secondValue): DateTime
     {
         return $firstValue > $secondValue ? $firstValue : $secondValue;
+    }
+
+    /**
+     * @param DateTime $firstDate
+     * @param DateTime $secondDate
+     *
+     * @return int
+     */
+    private static function maxInterval(DateTime $firstDate, DateTime $secondDate): int
+    {
+        return $firstDate > $secondDate
+            ? max(abs(self::getTotalMinutes($firstDate->diff($secondDate))), 0)
+            : max(-1 * abs(self::getTotalMinutes($firstDate->diff($secondDate))), 0);
+    }
+
+    /**
+     * @param DateInterval $dateInterval
+     *
+     * @return int
+     */
+    private static function getTotalMinutes(DateInterval $dateInterval): int
+    {
+        return ($dateInterval->d * 24 * 60) + ($dateInterval->h * 60) + $dateInterval->i;
     }
 }

@@ -32,18 +32,4 @@ class Shift
         $this->endTime = $endTime;
         $this->staffName = $staffName;
     }
-
-    /**
-     * Get shift payload.
-     *
-     * @return array
-     */
-    public function get(): array
-    {
-        return [
-            'staff_name' => $this->staffName,
-            'start_time' => $this->startTime,
-            'end_time'   => $this->endTime,
-        ];
-    }
 }
