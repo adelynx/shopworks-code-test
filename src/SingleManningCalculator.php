@@ -61,6 +61,6 @@ class SingleManningCalculator
 
         $singleManning += self::getTotalMinutes($currentShift->endTime->diff($currentShift->startTime));
 
-        return $singleManning; // TotalComplexity: n log (n) + n
+        return $singleManning; // Total complexity: n log (n) + n + n  ~=   n log (n)
     }
 }
